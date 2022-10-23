@@ -4,7 +4,7 @@
 
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=aniketsutar174&label=Profile%20views&color=0e75b6&style=flat" alt="aniketsutar174" /> </p>
 
-- 🔭 I’m currently working in **Capgemini**
+- 🔭 I’m currently working in **Trans Neuron Technology**
 
 - 🌱 I’m currently learning **Golang**
 
