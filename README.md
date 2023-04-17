@@ -6,7 +6,7 @@
 
 - 🔭 I’m currently working in **Trans Neuron Technology**
 
-- 🌱 I have experience learning **Golang**
+- 🌱 I have experience in **Golang**
 
 - 👨‍💻 All of my projects are available at [Repo](https://github.com/aniketsutar174)
 
