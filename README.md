@@ -1,10 +1,10 @@
 <a href="#"><img width="100%" height="auto" src="https://i.imgur.com/iXuL1HG.png" height="175px"/></a>
 <h1 align="center">Hi 👋, I'm Aniket</h1>
-<h3 align="center">Software Engineer</h3>
+<h3 align="center">Senior Software Engineer</h3>
 
 <p align="left"> <img src="https://komarev.com/ghpvc/?username=aniketsutar174&label=Profile%20views&color=0e75b6&style=flat" alt="aniketsutar174" /> </p>
 
-- 🔭 I’m currently working in **Trans Neuron Technology**
+- 🔭 I’m currently working in **NiCE**
 
 - 🌱 I have experience in **Golang**
 
