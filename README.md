@@ -1,27 +1,71 @@
-<a href="#"><img width="100%" height="auto" src="https://i.imgur.com/iXuL1HG.png" height="175px"/></a>
-<h1 align="center">Hi 👋, I'm Aniket</h1>
-<h3 align="center">Senior Software Engineer</h3>
+# token-optimizer
 
-<p align="left"> <img src="https://komarev.com/ghpvc/?username=aniketsutar174&label=Profile%20views&color=0e75b6&style=flat" alt="aniketsutar174" /> </p>
+Token-efficient RAG layer for agentic dev tasks using **Anthropic Claude + Voyage AI + pgvector**.
 
-- 🔭 I’m currently working in **NiCE**
+Supported task types: `jira` · `bug` · `analysis` · `coding` · `design` · `response`
 
-- 🌱 I have experience in **Golang**
+## Architecture
 
-- 👨‍💻 All of my projects are available at [Repo](https://github.com/aniketsutar174)
+```
+optimize index  →  chunk files → embed (Voyage) → store in pgvector
+optimize run    →  embed query → vector search → build context → call Claude
+optimize eval   →  run golden.jsonl → report token savings & quality
+```
 
-- 📫 How to reach me **aniket.sutar174@gmail.com**
+Key components:
+- `config.py` — budgets, model names, difficulty threshold, chunk sizes
+- `token_optimizer/engine.py` — main pipeline (retrieve → route → build context → LLM)
+- `token_optimizer/router.py` — picks fast/smart model based on retrieval confidence
+- `token_optimizer/context_builder.py` — assembles token-budgeted prompt context
+- `token_optimizer/retrieval/` — indexer (chunk+embed+store) and retriever (vector search)
+- `token_optimizer/core/` — Anthropic LLM client, Voyage embeddings client, pgvector DB ops
+- `token_optimizer/api.py` — FastAPI HTTP server (`/health`, `/run`)
+- `eval/` — evaluation harness + `golden.jsonl` (6 task types)
 
-- ⚡ Fun fact **I play games and go to the GYM**
+## Quick start
 
-<h3 align="left">Connect with me:</h3>
-<p align="left">
-<a href="https://linkedin.com/in/https://www.linkedin.com/in/aniketsutar" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="https://www.linkedin.com/in/aniketsutar" height="30" width="40" /></a>
-</p>
+```bash
+# 1. Install
+pip install -e .
 
-<h3 align="left">Languages and Tools:</h3>
-<p align="left"> <a href="https://aws.amazon.com" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" alt="aws" width="40" height="40"/> </a> <a href="https://www.w3schools.com/cpp/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg" alt="cplusplus" width="40" height="40"/> </a> <a href="https://www.docker.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original-wordmark.svg" alt="docker" width="40" height="40"/> </a> <a href="https://golang.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/go/go-original.svg" alt="go" width="40" height="40"/> </a> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg" alt="javascript" width="40" height="40"/> </a> <a href="https://www.mongodb.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mongodb/mongodb-original-wordmark.svg" alt="mongodb" width="40" height="40"/> </a> <a href="https://www.mysql.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mysql/mysql-original-wordmark.svg" alt="mysql" width="40" height="40"/> </a> <a href="https://nodejs.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/nodejs/nodejs-original-wordmark.svg" alt="nodejs" width="40" height="40"/> </a> <a href="https://opencv.org/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/opencv/opencv-icon.svg" alt="opencv" width="40" height="40"/> </a> <a href="https://www.python.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="python" width="40" height="40"/> </a> <a href="https://reactjs.org/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/react/react-original-wordmark.svg" alt="react" width="40" height="40"/> </a> <a href="https://www.tensorflow.org" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/tensorflow/tensorflow-icon.svg" alt="tensorflow" width="40" height="40"/> </a> </p>
+# 2. Configure
+cp .env.example .env
+# edit .env: set ANTHROPIC_API_KEY and VOYAGE_API_KEY
 
-<p><img align="left" src="https://github-readme-stats.vercel.app/api/top-langs?username=aniketsutar174&show_icons=true&locale=en&layout=compact" alt="aniketsutar174" /></p>
+# 3. Start Postgres+pgvector (Docker)
+docker compose up -d db
 
-<p>&nbsp;<img align="center" src="https://github-readme-stats.vercel.app/api?username=aniketsutar174&show_icons=true&locale=en" alt="aniketsutar174" /></p>
+# 4. Index a repo
+optimize index --repo myrepo --root /path/to/code
+
+# 5. Run a task
+optimize run analysis --repo myrepo --input "What does the engine module do?"
+
+# 6. HTTP API
+uvicorn token_optimizer.api:app --port 8080
+curl http://localhost:8080/health
+curl -X POST http://localhost:8080/run \
+  -H 'Content-Type: application/json' \
+  -d '{"task_type":"response","repo":"myrepo","input":"What embedding model is used?"}'
+
+# 7. Eval
+optimize eval --repo myrepo
+```
+
+## Configuration (`config.py`)
+
+| Setting | Default | Notes |
+|---|---|---|
+| `fast_model` | `claude-haiku-4-5-20251001` | Used when retrieval similarity ≥ threshold |
+| `smart_model` | `claude-sonnet-4-6` | Used when similarity < threshold or complex task |
+| `difficulty_threshold` | `0.65` | Cosine similarity below this → smart model |
+| `candidate_chunks` | `20` | Chunks fetched from pgvector |
+| `final_chunks` | `5` | Chunks kept for context |
+| `chunk_lines` | `50` | Lines per chunk |
+| `voyage_model` | `voyage-code-2` | Embedding model |
+
+## Requirements
+
+- Python 3.10+
+- PostgreSQL 14+ with pgvector extension
+- `ANTHROPIC_API_KEY` and `VOYAGE_API_KEY`

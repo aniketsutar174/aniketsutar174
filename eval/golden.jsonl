@@ -1,0 +1,6 @@
+{"id": "1", "task_type": "analysis", "repo": "testrepo", "input": "What does the engine module do and how does it orchestrate the RAG pipeline?", "expect_contains": ["retriev", "context"]}
+{"id": "2", "task_type": "bug", "repo": "testrepo", "input": "A user reports optimize() raises 'ANTHROPIC_API_KEY not set' even after setting it in their .env file. What could cause this?", "expect_contains": ["env", ".env"]}
+{"id": "3", "task_type": "coding", "repo": "testrepo", "input": "Show me how to add a new task type called 'review' to the token_optimizer system.", "expect_contains": ["config", "task"]}
+{"id": "4", "task_type": "design", "repo": "testrepo", "input": "Describe the overall architecture and data flow of the token_optimizer system from indexing through to LLM response.", "expect_contains": ["embed", "retriev"]}
+{"id": "5", "task_type": "jira", "repo": "testrepo", "input": "Create a Jira ticket to add TypeScript (.ts and .tsx) file support to the code indexer.", "expect_contains": ["typescript", "ts"]}
+{"id": "6", "task_type": "response", "repo": "testrepo", "input": "What embedding model does token_optimizer use for semantic search, and where is it configured?", "expect_contains": ["voyage"]}
