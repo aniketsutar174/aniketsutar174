@@ -7,14 +7,11 @@ load_dotenv()
 
 TASK_TYPES = ["jira", "bug", "analysis", "coding", "design", "response"]
 
-# Per-model embedding dimensions (voyage AI)
-VOYAGE_EMBEDDING_DIMS: Dict[str, int] = {
-    "voyage-code-2": 1536,
-    "voyage-2": 1024,
-    "voyage-large-2": 1536,
-    "voyage-3": 1024,
-    "voyage-code-3": 1024,
-    "voyage-3-lite": 512,
+# Local sentence-transformers model dimensions
+LOCAL_EMBEDDING_DIMS: Dict[str, int] = {
+    "all-MiniLM-L6-v2": 384,
+    "all-mpnet-base-v2": 768,
+    "all-MiniLM-L12-v2": 384,
 }
 
 
@@ -47,12 +44,12 @@ class Config:
         "postgresql://postgres:postgres@localhost:5432/tokenopt",
     ))
 
-    # Voyage embeddings
-    voyage_model: str = "voyage-code-2"
+    # Embedding model name (informational — offline hash embedder always used)
+    voyage_model: str = "local-hash"
 
     @property
     def embedding_dim(self) -> int:
-        return VOYAGE_EMBEDDING_DIMS.get(self.voyage_model, 1536)
+        return 384  # fixed: HashingVectorizer → random projection → 384-dim
 
     # Token budgets per task type
     budgets: Dict[str, BudgetConfig] = field(default_factory=lambda: {

@@ -9,7 +9,7 @@ description = "Token-efficient RAG layer for agentic dev tasks (jira/bug/analysi
 requires-python = ">=3.10"
 dependencies = [
     "anthropic>=0.30.0",
-    "voyageai>=0.2.3",
+    "sentence-transformers>=2.7.0",
     "psycopg2-binary>=2.9.9",
     "pgvector>=0.2.4",
     "click>=8.1.0",

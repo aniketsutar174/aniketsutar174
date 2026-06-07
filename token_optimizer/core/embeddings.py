@@ -1,39 +1,45 @@
-import os
-import time
+"""
+Offline dense embeddings via sklearn HashingVectorizer + random projection.
+
+No internet access or API keys required. Produces 384-dim L2-normalised
+vectors. Cosine similarity is meaningful for code: files sharing function
+names, identifiers, and keywords score higher than unrelated files.
+"""
 from typing import List
 
-import voyageai
+import numpy as np
+from sklearn.feature_extraction.text import HashingVectorizer
+
+# Sparse hashing vectorizer — 2^14 features, sublinear TF
+_hv = HashingVectorizer(
+    n_features=2**14,
+    alternate_sign=False,
+    norm="l2",
+    analyzer="word",
+    token_pattern=r"[A-Za-z_][A-Za-z0-9_]{1,}",  # code identifiers
+)
+
+# Fixed random projection matrix: (2^14, 384)
+_rng = np.random.default_rng(seed=42)
+_PROJ = _rng.standard_normal((2**14, 384)).astype(np.float32)
+_PROJ /= np.linalg.norm(_PROJ, axis=0, keepdims=True)  # column-normalise
 
 
-_client: voyageai.Client = None  # type: ignore[assignment]
-
-
-def _get_client() -> voyageai.Client:
-    global _client
-    if _client is None:
-        api_key = os.getenv("VOYAGE_API_KEY")
-        if not api_key:
-            raise RuntimeError("VOYAGE_API_KEY not set — add it to .env")
-        _client = voyageai.Client(api_key=api_key)
-    return _client
+def _dense(text: str) -> np.ndarray:
+    sparse = _hv.transform([text])          # (1, 2^14) sparse
+    dense = sparse.dot(_PROJ)              # (1, 384)
+    vec = dense[0].astype(np.float32)
+    norm = np.linalg.norm(vec)
+    return (vec / norm) if norm > 0 else vec
 
 
 def embed_texts(
     texts: List[str],
-    input_type: str = "document",
-    model: str = "voyage-code-2",
+    input_type: str = "document",   # kept for API compatibility
+    model: str = "local-hash",      # ignored — always uses offline method
 ) -> List[List[float]]:
-    client = _get_client()
-    results: List[List[float]] = []
-    batch_size = 128
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i : i + batch_size]
-        resp = client.embed(batch, model=model, input_type=input_type)
-        results.extend(resp.embeddings)
-        if i + batch_size < len(texts):
-            time.sleep(0.05)
-    return results
+    return [_dense(t).tolist() for t in texts]
 
 
-def embed_query(text: str, model: str = "voyage-code-2") -> List[float]:
-    return embed_texts([text], input_type="query", model=model)[0]
+def embed_query(text: str, model: str = "local-hash") -> List[float]:
+    return _dense(text).tolist()
